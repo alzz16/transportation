@@ -165,7 +165,7 @@ export default function VirtualMap({ segments, isLoading = false }: VirtualMapPr
               const isEnd = node.type === 'end';
               
               return (
-                <g key={idx} className="cursor-pointer">
+                <g key={idx}>
                   {/* 외부 펄스 링 (출발/도착역 애니메이션 효과) */}
                   {(isStart || isEnd) && (
                     <circle
