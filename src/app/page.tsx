@@ -57,7 +57,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="w-full min-height-100vh flex flex-col items-center justify-start px-4 py-12 max-w-md mx-auto">
+    <main className="min-height-100vh flex flex-col items-center justify-start px-4 py-12 max-w-md mx-auto">
       {/* 서비스 로고 및 헤더 */}
       <div className="w-full flex flex-col items-center gap-2 mb-10 text-center">
         {/* 아이콘 */}
