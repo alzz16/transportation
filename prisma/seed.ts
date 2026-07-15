@@ -182,6 +182,148 @@ async function main() {
     ],
   });
 
+  // 4. 원당역 <=> 대곡역 양방향 경로 추가
+  const routeWondangDaegok = await prisma.route.create({
+    data: {
+      id: 'route-wondang-daegok',
+      title: '지하철 직통 경로 (3호선)',
+      totalDuration: 9,
+      totalFare: 1400,
+    },
+  });
+
+  await prisma.segment.createMany({
+    data: [
+      {
+        id: 'seg-wd-1',
+        routeId: routeWondangDaegok.id,
+        type: 'walk',
+        startLocationId: wondang.id,
+        endLocationId: wondang.id,
+        durationMinutes: 3,
+        sequenceOrder: 1,
+      },
+      {
+        id: 'seg-wd-2',
+        routeId: routeWondangDaegok.id,
+        type: 'subway',
+        lineName: '3호선',
+        startLocationId: wondang.id,
+        endLocationId: daegok.id,
+        durationMinutes: 6,
+        fastTransferSection: '2-3',
+        direction: '대화행',
+        sequenceOrder: 2,
+      },
+    ],
+  });
+
+  const routeDaegokWondang = await prisma.route.create({
+    data: {
+      id: 'route-daegok-wondang',
+      title: '지하철 직통 경로 (3호선)',
+      totalDuration: 9,
+      totalFare: 1400,
+    },
+  });
+
+  await prisma.segment.createMany({
+    data: [
+      {
+        id: 'seg-dw-1',
+        routeId: routeDaegokWondang.id,
+        type: 'walk',
+        startLocationId: daegok.id,
+        endLocationId: daegok.id,
+        durationMinutes: 3,
+        sequenceOrder: 1,
+      },
+      {
+        id: 'seg-dw-2',
+        routeId: routeDaegokWondang.id,
+        type: 'subway',
+        lineName: '3호선',
+        startLocationId: daegok.id,
+        endLocationId: wondang.id,
+        durationMinutes: 6,
+        fastTransferSection: '1-1',
+        direction: '오금행',
+        sequenceOrder: 2,
+      },
+    ],
+  });
+
+  // 5. 대곡역 <=> 한국항공대역 양방향 경로 추가
+  const routeDaegokHangongdae = await prisma.route.create({
+    data: {
+      id: 'route-daegok-hangongdae',
+      title: '지하철 직통 경로 (경의중앙선)',
+      totalDuration: 13,
+      totalFare: 1400,
+    },
+  });
+
+  await prisma.segment.createMany({
+    data: [
+      {
+        id: 'seg-dh-1',
+        routeId: routeDaegokHangongdae.id,
+        type: 'walk',
+        startLocationId: daegok.id,
+        endLocationId: daegok.id,
+        durationMinutes: 3,
+        sequenceOrder: 1,
+      },
+      {
+        id: 'seg-dh-2',
+        routeId: routeDaegokHangongdae.id,
+        type: 'subway',
+        lineName: '경의중앙선',
+        startLocationId: daegok.id,
+        endLocationId: hangongdae.id,
+        durationMinutes: 10,
+        fastTransferSection: '3-1',
+        direction: '덕소/지평행',
+        sequenceOrder: 2,
+      },
+    ],
+  });
+
+  const routeHangongdaeDaegok = await prisma.route.create({
+    data: {
+      id: 'route-hangongdae-daegok',
+      title: '지하철 직통 경로 (경의중앙선)',
+      totalDuration: 13,
+      totalFare: 1400,
+    },
+  });
+
+  await prisma.segment.createMany({
+    data: [
+      {
+        id: 'seg-hd-1',
+        routeId: routeHangongdaeDaegok.id,
+        type: 'walk',
+        startLocationId: hangongdae.id,
+        endLocationId: hangongdae.id,
+        durationMinutes: 3,
+        sequenceOrder: 1,
+      },
+      {
+        id: 'seg-hd-2',
+        routeId: routeHangongdaeDaegok.id,
+        type: 'subway',
+        lineName: '경의중앙선',
+        startLocationId: hangongdae.id,
+        endLocationId: daegok.id,
+        durationMinutes: 10,
+        fastTransferSection: '4-2',
+        direction: '문산행',
+        sequenceOrder: 2,
+      },
+    ],
+  });
+
   console.log('Routes and Segments seeded.');
 
   // 4. Incidents (돌발 특이사항) 등록
