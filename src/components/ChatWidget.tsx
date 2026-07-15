@@ -74,7 +74,7 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
   };
 
   return (
-    <div className="w-full max-w-[360px] mx-auto bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl pt-12 pb-2.5 px-4 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
+    <div className="w-full max-w-[360px] mx-auto bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl pt-12 pb-1 px-4 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
       {/* 장식용 배경 광원 */}
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
