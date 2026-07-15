@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import SearchBar from '@/components/SearchBar';
 import PresetSection, { RoutePreset } from '@/components/PresetSection';
 import { getOrCreateDeviceId } from '@/utils/user';
+import ChatWidget from '@/components/ChatWidget';
 
 export default function HomePage() {
   const [presets, setPresets] = useState<RoutePreset[]>([]);
@@ -78,17 +79,9 @@ export default function HomePage() {
       {/* 자주 이용하는 경로 프리셋 */}
       <PresetSection presets={presets} onDeletePreset={handleDeletePreset} />
 
-      {/* 안내 가이드 팁 */}
-      <div className="w-full glass-panel p-5 mt-10 border-l-4 border-l-blue-600 flex gap-3.5 items-start bg-blue-50/20">
-        <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-bold text-slate-700">사용 안내 팁</span>
-          <span className="text-[11px] text-slate-500 leading-relaxed font-medium">
-            원당역 ➡️ 한국항공대역 같은 자주 타는 노선을 미리 검색한 후 상세 화면에서 저장하면 메인 프리셋에 등록되어, 매번 검색할 필요 없이 한 번에 최적 매칭된 실시간 대기 정보를 조회할 수 있습니다.
-          </span>
-        </div>
+      {/* 실시간 DB 데이터 참조 GROQ AI 챗봇 가이드 */}
+      <div className="w-full mt-10">
+        <ChatWidget />
       </div>
     </main>
   );
