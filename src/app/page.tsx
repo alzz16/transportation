@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import SearchBar from '@/components/SearchBar';
 import PresetSection, { RoutePreset } from '@/components/PresetSection';
+import { getOrCreateDeviceId } from '@/utils/user';
 
 export default function HomePage() {
   const [presets, setPresets] = useState<RoutePreset[]>([]);
@@ -11,7 +12,8 @@ export default function HomePage() {
   useEffect(() => {
     async function loadPresets() {
       try {
-        const res = await fetch('/api/presets?userId=anonymous-user');
+        const deviceId = getOrCreateDeviceId();
+        const res = await fetch(`/api/presets?userId=${deviceId}`);
         if (res.ok) {
           const data = await res.json();
           setPresets(data);

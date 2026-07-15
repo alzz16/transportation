@@ -7,6 +7,7 @@ import IncidentWidget from '@/components/IncidentWidget';
 import Timeline from '@/components/Timeline';
 import PresetModal from '@/components/PresetModal';
 import VirtualMap from '@/components/VirtualMap';
+import { getOrCreateDeviceId } from '@/utils/user';
 
 // API에서 내려오는 타입 정의
 interface LocationData {
@@ -230,7 +231,7 @@ function RouteDetailContent() {
           startLocationId: startLoc.id,
           endLocationId: endLoc.id,
           routeId: selectedRoute.id,
-          userId: 'anonymous-user', // 기본 익명 식별자 매핑
+          userId: getOrCreateDeviceId(),
         }),
       });
 
