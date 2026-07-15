@@ -255,3 +255,102 @@ useEffect(() => {
   };
 }, [selectedRouteId]);
 ```
+
+---
+
+## 5. 실제 지도 (Kakao / Naver Maps SDK) 연동 기획
+
+현재 CSS/SVG 기반으로 제작된 가상 지도를 실제 지리 정보와 노선 라인이 그려지는 실제 상용 지도 API로 전환하기 위한 상세 사양입니다.
+
+### 5.1 추천 지도 API 및 특징
+* **카카오맵 (Kakao Maps API) [강력 추천]**
+  * *장점*: 하루 30만 회의 넉넉한 무료 쿼터(할당량)를 제공하여 소규모 서비스나 개발 테스트용으로 완전 무료 운용이 가능합니다. 국내 지하철역 및 버스정류장 위치, 도로망 그래픽 해상도가 가장 뛰어납니다.
+  * *라이브러리*: Next.js 환경에 맞게 최적화된 **`react-kakao-maps-sdk`**를 사용하면 지도 객체를 선언적으로 쉽게 렌더링할 수 있습니다.
+
+### 5.2 Next.js 실제 지도 로드 기획 (카카오맵 기준)
+Next.js의 `<Script>` 컴포넌트를 사용하여 최상위 레이아웃 혹은 지도 컴포넌트 마운트 전에 카카오 지도 SDK 스크립트를 로딩합니다.
+
+```typescript
+// src/app/layout.tsx 또는 지도 상위 레이아웃
+import Script from 'next/script';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <body>
+        {children}
+        {/* 카카오 지도 API 비동기 로드 */}
+        <Script
+          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&autoload=false`}
+          strategy="beforeInteractive"
+        />
+      </body>
+    </html>
+  );
+}
+```
+
+### 5.3 데이터베이스 좌표 데이터 보강
+실제 지도에 핀(Marker)과 이동선(Polyline)을 그리기 위해, 기존 `locations` 테이블 및 `segments` 모델에 위도/경도 컬럼을 실제 수치로 마이그레이션합니다.
+* `locations` 모델: `latitude` (Decimal), `longitude` (Decimal) 필드값 필수화.
+* 원당역 좌표: `37.6531, 126.8327`
+* 한국항공대역 좌표: `37.5996, 126.8653`
+
+### 5.4 실제 지도 노선 드로잉 및 SSE 위치 동기화 의사 코드
+가상 지도를 대체할 `VirtualMap.tsx` 내의 실제 지도 렌더링 설계 예시입니다:
+
+```typescript
+import { Map, MapMarker, Polyline } from 'react-kakao-maps-sdk';
+
+export default function RealMap({ segments, liveBusGps }) {
+  // 1. 모든 세그먼트의 위경도 좌표를 모아서 지도에 그려질 이동 경로 선(Polyline) 배열 생성
+  const pathCoordinates = segments.map(seg => ({
+    lat: seg.endLocation.latitude,
+    lng: seg.endLocation.longitude
+  }));
+
+  // 2. 출발지 및 도착지 마커 핀 정의
+  const startMarker = {
+    lat: segments[0].startLocation.latitude,
+    lng: segments[0].startLocation.longitude,
+    title: "출발"
+  };
+
+  return (
+    <Map
+      center={startMarker} // 출발지 기준으로 지도 중심점 설정
+      style={{ width: '100%', height: '220px' }}
+      level={5} // 줌 배율 설정
+    >
+      {/* 출발지 마커 */}
+      <MapMarker position={startMarker} />
+      
+      {/* 도착지 마커 */}
+      <MapMarker position={{
+        lat: segments[segments.length - 1].endLocation.latitude,
+        lng: segments[segments.length - 1].endLocation.longitude
+      }} />
+
+      {/* 대중교통 노선 경로 실선 그리기 */}
+      <Polyline
+        path={[pathCoordinates]}
+        strokeWeight={6}
+        strokeColor="#3b82f6" // 버스는 파란색, 지하철은 주황색 등 동적 부여
+        strokeOpacity={0.8}
+        strokeStyle="solid"
+      />
+
+      {/* SSE로 받아온 실시간 버스/지하철 실시간 움직이는 GPS 핀 마커 */}
+      {liveBusGps && (
+        <MapMarker 
+          position={{ lat: liveBusGps.lat, lng: liveBusGps.lng }}
+          image={{
+            src: "/images/bus-marker.png", // 버스 커스텀 핀 이미지
+            size: { width: 24, height: 24 }
+          }}
+        />
+      )}
+    </Map>
+  );
+}
+```
