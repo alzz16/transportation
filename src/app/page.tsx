@@ -81,7 +81,7 @@ export default function HomePage() {
       <PresetSection presets={presets} onDeletePreset={handleDeletePreset} />
 
       {/* 실시간 DB 데이터 참조 GROQ AI 챗봇 가이드 */}
-      <div className="w-full mt-10 transition-all duration-300">
+      <div className="w-full max-w-[360px] mx-auto mt-10 transition-all duration-300">
         {isChatOpen ? (
           <div className="animate-in slide-in-from-bottom-5 duration-300">
             <ChatWidget onClose={() => setIsChatOpen(false)} />
