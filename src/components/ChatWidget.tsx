@@ -74,13 +74,13 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
   };
 
   return (
-    <div className="w-full bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl pt-8 pb-4 px-5 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
+    <div className="w-full bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl pt-12 pb-2.5 px-4 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
       {/* 장식용 배경 광원 */}
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
 
       {/* 헤더 */}
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-3.5 relative z-10">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3 relative z-10">
         <div className="flex items-center gap-3">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -147,7 +147,7 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
       </div>
 
       {/* 추천 질문 태그 */}
-      <div className="flex flex-wrap gap-1.5 mt-3 mb-2 relative z-10">
+      <div className="flex flex-wrap gap-1.5 mt-2.5 mb-1 relative z-10">
         {quickQuestions.map((q, idx) => (
           <button
             key={idx}
@@ -161,7 +161,7 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
       </div>
 
       {/* 입력부 */}
-      <div className="flex items-center gap-2 mt-1.5 pt-2 border-t border-slate-100 relative z-10">
+      <div className="flex items-center gap-2 mt-1 pt-1.5 border-t border-slate-100 relative z-10">
         <input
           type="text"
           value={input}
