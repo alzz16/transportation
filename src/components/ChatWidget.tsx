@@ -111,7 +111,7 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
       </div>
 
       {/* 메시지 바디 */}
-      <div className="h-[240px] overflow-y-auto pr-1 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-slate-200 relative z-10">
+      <div className="h-[360px] overflow-y-auto pr-1 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-slate-200 relative z-10">
         {messages.map((msg, index) => {
           const isUser = msg.role === 'user';
           return (
