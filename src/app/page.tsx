@@ -8,6 +8,7 @@ import ChatWidget from '@/components/ChatWidget';
 
 export default function HomePage() {
   const [presets, setPresets] = useState<RoutePreset[]>([]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // 데이터베이스(API) 및 LocalStorage 교차 프리셋 목록 읽어오기
   useEffect(() => {
@@ -80,8 +81,22 @@ export default function HomePage() {
       <PresetSection presets={presets} onDeletePreset={handleDeletePreset} />
 
       {/* 실시간 DB 데이터 참조 GROQ AI 챗봇 가이드 */}
-      <div className="w-full mt-10">
-        <ChatWidget />
+      <div className="w-full mt-10 transition-all duration-300">
+        {isChatOpen ? (
+          <div className="animate-in slide-in-from-bottom-5 duration-300">
+            <ChatWidget onClose={() => setIsChatOpen(false)} />
+          </div>
+        ) : (
+          <button
+            onClick={() => setIsChatOpen(true)}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-indigo-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer"
+          >
+            <svg className="w-4 h-4 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            AI 환승 비서와 대화하기
+          </button>
+        )}
       </div>
     </main>
   );

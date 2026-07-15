@@ -7,7 +7,11 @@ interface ChatMessage {
   content: string;
 }
 
-export default function ChatWidget() {
+interface ChatWidgetProps {
+  onClose?: () => void;
+}
+
+export default function ChatWidget({ onClose }: ChatWidgetProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
@@ -87,9 +91,23 @@ export default function ChatWidget() {
             <p className="text-[10px] text-slate-400 font-medium">실시간 DB 기반 답변 처리</p>
           </div>
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100/50">
-          Powered by GROQ Llama 3.3
-        </span>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100/50">
+            GROQ AI
+          </span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center"
+              title="챗봇 닫기"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 메시지 바디 */}
