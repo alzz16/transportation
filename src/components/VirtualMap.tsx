@@ -1,10 +1,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { RouteSegment } from '@/data/mockData';
+
+export interface VirtualMapSegment {
+  id: string;
+  type: string;
+  lineName: string | null;
+  startLocation: {
+    name: string;
+  };
+  endLocation: {
+    name: string;
+  };
+  durationMinutes: number;
+}
 
 interface VirtualMapProps {
-  segments: RouteSegment[];
+  segments: VirtualMapSegment[];
   isLoading?: boolean;
   liveLocation?: {
     segmentId: string;
@@ -28,7 +40,7 @@ export default function VirtualMap({ segments, isLoading = false, liveLocation =
   }, [segments]);
 
   // 대중교통 노선 수단별 색상 매핑
-  const getSegmentColor = (lineName?: string) => {
+  const getSegmentColor = (lineName?: string | null) => {
     if (!lineName) return '#94a3b8'; // 도보
     if (lineName.includes('3호선')) return '#f97316'; // 주황
     if (lineName.includes('경의중앙선')) return '#10b981'; // 초록
@@ -51,7 +63,7 @@ export default function VirtualMap({ segments, isLoading = false, liveLocation =
 
     if (isFirst) {
       mapNodes.push({
-        name: seg.startName,
+        name: seg.startLocation.name,
         type: 'start',
         color: '#10b981', // 초록 핀
         x: currentX,
@@ -62,7 +74,7 @@ export default function VirtualMap({ segments, isLoading = false, liveLocation =
     currentX += stepX;
 
     mapNodes.push({
-      name: seg.endName,
+      name: seg.endLocation.name,
       type: isLast ? 'end' : 'transfer',
       color: isLast ? '#ef4444' : color,
       x: currentX,
