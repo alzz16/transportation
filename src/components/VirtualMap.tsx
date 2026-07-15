@@ -230,35 +230,6 @@ export default function VirtualMap({ segments, isLoading = false, liveLocation =
                 </g>
               );
             })}
-
-            {/* 5. SSE 실시간 대중교통 GPS 마커 핀 */}
-            {liveLocation && (
-              <g 
-                style={{ 
-                  transform: `translate(${liveLocation.currentX}px, ${liveLocation.currentY}px)`,
-                  transition: 'transform 2.8s linear' // SSE 수신 주기(3초)에 연동해 자연스럽게 등속으로 핀이 흐르도록 설정
-                }}
-              >
-                {/* 펄싱 효과 백그라운드 링 */}
-                <circle cx="0" cy="0" r="14" fill="#3b82f6" className="opacity-25 animate-ping" />
-                
-                {/* 메인 마커 원 */}
-                <circle cx="0" cy="0" r="9" fill="#2563eb" stroke="#ffffff" strokeWidth="2" />
-                
-                {/* 수단 구분 이모지 텍스트 */}
-                <text x="0" y="3" fontSize="8" textAnchor="middle" fill="#ffffff">
-                  {liveLocation.lineName.includes('버스') ? '🚌' : '🚇'}
-                </text>
-
-                {/* 실시간 위치 상태 말풍선 */}
-                <g transform="translate(0, -18)">
-                  <rect x="-50" y="-9" width="100" height="13" rx="3.5" fill="#1e293b" />
-                  <text x="0" y="0" fill="#ffffff" fontSize="6.5" fontWeight="bold" textAnchor="middle">
-                    {liveLocation.lineName.split(' ')[0]} · {liveLocation.status.length > 10 ? liveLocation.status.substring(0, 10) + '..' : liveLocation.status}
-                  </text>
-                </g>
-              </g>
-            )}
           </svg>
 
           {/* 하단 범례 오버레이 */}
