@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
@@ -8,6 +10,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const startLocId = searchParams.get('start');
     const endLocId = searchParams.get('end');
+
+    console.log('--- API /api/routes call ---');
+    console.log('startParam:', startLocId, 'endParam:', endLocId);
 
     if (!startLocId || !endLocId) {
       return NextResponse.json({ error: '출발지(start)와 도착지(end) 파라미터가 누락되었습니다.' }, { status: 400 });
@@ -33,6 +38,9 @@ export async function GET(request: NextRequest) {
       const lastSegment = route.segments[route.segments.length - 1];
       return firstSegment.startLocationId === startLocId && lastSegment.endLocationId === endLocId;
     });
+
+    console.log('Matched routes count:', matchedRoutes.length);
+    matchedRoutes.forEach(r => console.log(' -> Route:', r.title, 'Segments count:', r.segments.length));
 
     // 3. 클라이언트 통신용 규격 포맷팅
     const formattedRoutes = matchedRoutes.map((route) => ({
