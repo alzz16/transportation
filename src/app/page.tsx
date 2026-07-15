@@ -7,23 +7,49 @@ import PresetSection, { RoutePreset } from '@/components/PresetSection';
 export default function HomePage() {
   const [presets, setPresets] = useState<RoutePreset[]>([]);
 
-  // LocalStorage로부터 프리셋 목록 읽어오기
+  // 데이터베이스(API) 및 LocalStorage 교차 프리셋 목록 읽어오기
   useEffect(() => {
-    const saved = localStorage.getItem('transit-presets');
-    if (saved) {
+    async function loadPresets() {
       try {
-        setPresets(JSON.parse(saved));
-      } catch (e) {
-        console.error('프리셋 로드 중 에러:', e);
+        const res = await fetch('/api/presets?userId=anonymous-user');
+        if (res.ok) {
+          const data = await res.json();
+          setPresets(data);
+          // 로컬스토리지에도 최신 상태 업데이트 백업
+          localStorage.setItem('transit-presets', JSON.stringify(data));
+          return;
+        }
+      } catch (err) {
+        console.error('API 프리셋 조회 실패, LocalStorage 폴백 사용:', err);
+      }
+
+      // 오프라인/에러 시 로컬스토리지 폴백 로드
+      const saved = localStorage.getItem('transit-presets');
+      if (saved) {
+        try {
+          setPresets(JSON.parse(saved));
+        } catch (e) {
+          console.error('프리셋 로컬스토리지 로드 에러:', e);
+        }
       }
     }
+
+    loadPresets();
   }, []);
 
-  // 프리셋 개별 삭제
-  const handleDeletePreset = (id: string) => {
+  // 프리셋 개별 삭제 (API 호출 및 로컬스토리지 동시 갱신)
+  const handleDeletePreset = async (id: string) => {
     const updated = presets.filter(p => p.id !== id);
     setPresets(updated);
     localStorage.setItem('transit-presets', JSON.stringify(updated));
+
+    try {
+      await fetch(`/api/presets?id=${id}`, {
+        method: 'DELETE',
+      });
+    } catch (e) {
+      console.error('API 프리셋 삭제 동기화 실패:', e);
+    }
   };
 
   return (

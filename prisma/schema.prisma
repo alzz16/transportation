@@ -1,0 +1,90 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. 위치/정류장 정보
+model Location {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   // "subway" | "bus"
+  detail    String   // 예: "3호선", "경의중앙선"
+  latitude  Float?
+  longitude Float?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  startSegments Segment[] @relation("StartLocation")
+  endSegments   Segment[] @relation("EndLocation")
+  presetsStart  Preset[]  @relation("PresetStart")
+  presetsEnd    Preset[]  @relation("PresetEnd")
+
+  @@map("locations")
+}
+
+// 2. 대중교통 경로
+model Route {
+  id            String    @id @default(uuid())
+  title         String
+  totalDuration Int       @map("total_duration")
+  totalFare     Int       @map("total_fare")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  segments      Segment[]
+  presets       Preset[]
+
+  @@map("routes")
+}
+
+// 3. 경로 내 세부 이동 구간
+model Segment {
+  id                  String   @id @default(uuid())
+  routeId             String   @map("route_id")
+  type                String   // "walk" | "subway" | "bus"
+  lineName            String?  @map("line_name")
+  startLocationId     String   @map("start_location_id")
+  endLocationId       String   @map("end_location_id")
+  durationMinutes     Int      @map("duration_minutes")
+  fastTransferSection String?  @map("fast_transfer_section")
+  direction           String?
+  sequenceOrder       Int      @map("sequence_order")
+
+  route         Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  startLocation Location @relation("StartLocation", fields: [startLocationId], references: [id])
+  endLocation   Location @relation("EndLocation", fields: [endLocationId], references: [id])
+
+  @@map("segments")
+}
+
+// 4. 대중교통 실시간 특이사항 정보
+model Incident {
+  id          String   @id @default(uuid())
+  transitName String   @map("transit_name")
+  level       String   // "normal" | "warning" | "emergency"
+  title       String
+  description String
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  sourceName  String?  @map("source_name")
+  sourceUrl   String?  @map("source_url")
+
+  @@map("incidents")
+}
+
+// 5. 자주 이용하는 경로 프리셋
+model Preset {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id") // 고유 기기 UUID 혹은 유저 닉네임 매핑용
+  title           String
+  startLocationId String   @map("start_location_id")
+  endLocationId   String   @map("end_location_id")
+  routeId         String   @map("route_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  startLocation Location @relation("PresetStart", fields: [startLocationId], references: [id])
+  endLocation   Location @relation("PresetEnd", fields: [endLocationId], references: [id])
+  route         Route    @relation(fields: [routeId], references: [id])
+
+  @@map("presets")
+}

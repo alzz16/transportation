@@ -2,15 +2,43 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getRoutes, getIncidentsForRoute, mockLocations, TransitRoute } from '@/data/mockData';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import IncidentWidget from '@/components/IncidentWidget';
 import Timeline from '@/components/Timeline';
 import PresetModal from '@/components/PresetModal';
 import VirtualMap from '@/components/VirtualMap';
 
+// API에서 내려오는 타입 정의
+interface LocationData {
+  id: string;
+  name: string;
+  type: string;
+  detail: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+interface SegmentData {
+  id: string;
+  type: string;
+  lineName: string | null;
+  startLocation: LocationData;
+  endLocation: LocationData;
+  durationMinutes: number;
+  fastTransferSection: string | null;
+  direction: string | null;
+}
+
+interface RouteData {
+  id: string;
+  title: string;
+  totalDuration: number;
+  totalFare: number;
+  segments: SegmentData[];
+}
+
 // 각 경로에 대한 시간표 및 요약 정보를 계산하는 헬퍼 함수
-function getCalculatedRouteSummary(route: TransitRoute, baseTime: Date) {
+function getCalculatedRouteSummary(route: RouteData, baseTime: Date) {
   const startHour = baseTime.getHours();
   const startMin = baseTime.getMinutes();
   const startMinTotal = startHour * 60 + startMin;
@@ -68,45 +96,103 @@ function RouteDetailContent() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isMapSyncing, setIsMapSyncing] = useState(false);
-  const [allRoutes, setAllRoutes] = useState<TransitRoute[]>([]);
+  const [allRoutes, setAllRoutes] = useState<RouteData[]>([]);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [baseTime, setBaseTime] = useState<Date | null>(null);
+  const [incidents, setIncidents] = useState<any[]>([]);
+
+  // SSE 실시간 GPS 좌표 상태 저장용
+  const [liveLocation, setLiveLocation] = useState<any>(null);
 
   // 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 1. 초기 쿼리 검사 및 로딩 시뮬레이션
+  // 1. API 데이터 호출 (경로 탐색)
   useEffect(() => {
     if (!startId || !endId) {
       router.push('/');
       return;
     }
 
-    const foundRoutes = getRoutes(startId, endId);
-    if (foundRoutes.length === 0) {
-      alert('해당 경로의 운행 정보가 없습니다.');
-      router.push('/search');
-      return;
-    }
+    async function fetchRouteData() {
+      try {
+        setIsLoading(true);
+        // API Route Handler 호출
+        const res = await fetch(`/api/routes?start=${startId}&end=${endId}`);
+        if (!res.ok) throw new Error('API 호출 실패');
+        
+        const data = await res.json();
+        if (data.length === 0) {
+          alert('해당 경로의 운행 정보가 없습니다.');
+          router.push('/search');
+          return;
+        }
 
-    setAllRoutes(foundRoutes);
-    setBaseTime(new Date());
+        setAllRoutes(data);
+        setBaseTime(new Date());
 
-    // 초기 활성화 경로 설정 (프리셋 유무 등)
-    if (initialRouteId) {
-      const exists = foundRoutes.some(r => r.id === initialRouteId);
-      if (exists) {
-        setSelectedRouteId(initialRouteId);
+        // 초기 경로 바인딩 처리
+        if (initialRouteId) {
+          const exists = data.some((r: RouteData) => r.id === initialRouteId);
+          if (exists) {
+            setSelectedRouteId(initialRouteId);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert('데이터 로딩 오류가 발생했습니다.');
+      } finally {
+        setIsLoading(false);
       }
     }
 
-    // 1.2초간 스켈레톤 로딩 연출
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1200);
-
-    return () => clearTimeout(timer);
+    fetchRouteData();
   }, [startId, endId, router, initialRouteId]);
+
+  // 2. 선택된 경로가 바뀔 때마다 해당 노선의 실시간 Incident 정보 호출 및 SSE 연결 수립
+  useEffect(() => {
+    if (!selectedRouteId) {
+      setIncidents([]);
+      setLiveLocation(null);
+      return;
+    }
+
+    // 2.1 API를 통해 실시간 돌발 정보 조회
+    async function fetchIncidents() {
+      try {
+        const res = await fetch(`/api/incidents?routeId=${selectedRouteId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setIncidents(data);
+        }
+      } catch (e) {
+        console.error('실시간 돌발 조회 실패:', e);
+      }
+    }
+
+    fetchIncidents();
+
+    // 2.2 SSE(Server-Sent Events) 커넥션 수립
+    const eventSource = new EventSource(`/api/realtime?routeId=${selectedRouteId}`);
+
+    eventSource.addEventListener('location-update', (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        setLiveLocation(payload);
+      } catch (err) {
+        console.error('SSE 데시멀 디코딩 에러:', err);
+      }
+    });
+
+    eventSource.onerror = (err) => {
+      console.warn('SSE 연결 유실 또는 비활성 복구 중...', err);
+    };
+
+    return () => {
+      eventSource.close(); // 채널 연결 해제 및 메모리 해제
+      setLiveLocation(null);
+    };
+  }, [selectedRouteId]);
 
   if (allRoutes.length === 0 || !baseTime) return null;
 
@@ -115,11 +201,11 @@ function RouteDetailContent() {
 
   // 선택된 경로의 정보 계산
   const selectedInfo = selectedRoute ? getCalculatedRouteSummary(selectedRoute, baseTime) : null;
-  const selectedIncidents = selectedRoute ? getIncidentsForRoute(selectedRoute) : [];
 
-  // 출발/도착역 정보
-  const startLoc = mockLocations.find(l => l.id === startId);
-  const endLoc = mockLocations.find(l => l.id === endId);
+  // 정적 첫번째 경로 기준의 역 정보
+  const firstRoute = allRoutes[0];
+  const startLoc = firstRoute?.segments[0]?.startLocation;
+  const endLoc = firstRoute?.segments[firstRoute.segments.length - 1]?.endLocation;
 
   // 경로 클릭 토글 및 맵 로딩 연출
   const handleSelectRoute = (routeId: string) => {
@@ -131,36 +217,57 @@ function RouteDetailContent() {
   };
 
   // 프리셋으로 저장 액션
-  const handleSavePreset = (title: string) => {
+  const handleSavePreset = async (title: string) => {
     if (!startLoc || !endLoc || !selectedRoute) return;
 
-    const saved = localStorage.getItem('transit-presets');
-    let presets = [];
-    if (saved) {
-      try {
-        presets = JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
+    try {
+      // 1. 백엔드 데이터베이스 등록 API 호출 (Supabase 연동 대비)
+      const res = await fetch('/api/presets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          startLocationId: startLoc.id,
+          endLocationId: endLoc.id,
+          routeId: selectedRoute.id,
+          userId: 'anonymous-user', // 기본 익명 식별자 매핑
+        }),
+      });
+
+      if (!res.ok) throw new Error('API 프리셋 저장 실패');
+
+      // 2. 로컬스토리지에도 기획에 맞춰 보완 동기화 백업
+      const saved = localStorage.getItem('transit-presets');
+      let presets = [];
+      if (saved) {
+        try {
+          presets = JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
       }
+
+      const newPreset = {
+        id: `preset-${Date.now()}`,
+        title,
+        startLocation: startLoc,
+        endLocation: endLoc,
+        routeId: selectedRoute.id,
+        routeTitle: selectedRoute.title,
+        createdAt: Date.now()
+      };
+
+      const filtered = presets.filter(
+        (p: any) => !(p.startLocation.id === startLoc.id && p.endLocation.id === endLoc.id && p.routeId === selectedRoute.id)
+      );
+
+      localStorage.setItem('transit-presets', JSON.stringify([newPreset, ...filtered]));
+      setIsModalOpen(false);
+      router.push('/');
+    } catch (e) {
+      console.error(e);
+      alert('프리셋 저장 과정에 오류가 발생했습니다.');
     }
-
-    const newPreset = {
-      id: `preset-${Date.now()}`,
-      title,
-      startLocation: startLoc,
-      endLocation: endLoc,
-      routeId: selectedRoute.id,
-      routeTitle: selectedRoute.title,
-      createdAt: Date.now()
-    };
-
-    const filtered = presets.filter(
-      (p: any) => !(p.startLocation.id === startLoc.id && p.endLocation.id === endLoc.id && p.routeId === selectedRoute.id)
-    );
-
-    localStorage.setItem('transit-presets', JSON.stringify([newPreset, ...filtered]));
-    setIsModalOpen(false);
-    router.push('/');
   };
 
   return (
@@ -195,10 +302,14 @@ function RouteDetailContent() {
       ) : (
         <div className="w-full flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
           
-          {/* 가상 실시간 노선 지도 (경로 선택시에만 고정 노출) */}
+          {/* 가상 실시간 노선 지도 (경로 선택시에만 고정 노출 + SSE 마커 좌표 주입) */}
           {selectedRoute && (
             <div className="w-full animate-in fade-in zoom-in-95 duration-300">
-              <VirtualMap segments={selectedRoute.segments} isLoading={isMapSyncing} />
+              <VirtualMap 
+                segments={selectedRoute.segments as any} 
+                isLoading={isMapSyncing} 
+                liveLocation={liveLocation}
+              />
             </div>
           )}
 
@@ -225,11 +336,10 @@ function RouteDetailContent() {
                   </button>
                 </div>
 
-                {/* 선택된 요약 카드 단 하나 렌더링 (보더 두께 차이를 1px로 통일) */}
+                {/* 선택된 요약 카드 단 하나 렌더링 */}
                 {(() => {
                   const summary = selectedInfo!;
-                  const routeIncidents = getIncidentsForRoute(selectedRoute);
-                  const hasEmergency = routeIncidents.some(inc => inc.level === 'emergency');
+                  const hasEmergency = incidents.some(inc => inc.level === 'emergency');
 
                   return (
                     <div className="w-full glass-panel p-5 flex flex-col gap-3.5 relative overflow-hidden border border-blue-500 bg-blue-50/10 shadow-md">
@@ -313,8 +423,6 @@ function RouteDetailContent() {
 
                 {allRoutes.map((routeItem) => {
                   const summary = getCalculatedRouteSummary(routeItem, baseTime);
-                  const routeIncidents = getIncidentsForRoute(routeItem);
-                  const hasEmergency = routeIncidents.some(inc => inc.level === 'emergency');
 
                   return (
                     <div
@@ -327,15 +435,9 @@ function RouteDetailContent() {
                           <span className="text-xs font-semibold px-2 py-0.5 rounded border bg-slate-100 text-slate-600 border-slate-200">
                             {routeItem.title}
                           </span>
-                          {hasEmergency ? (
-                            <span className="text-[10px] font-bold text-red-700 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded animate-pulse">
-                              긴급 지연/우회권장
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded">
-                              정상 소통
-                            </span>
-                          )}
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded">
+                            정상 소통
+                          </span>
                         </div>
                         <span className="text-[11px] text-slate-600 font-medium">
                           요금: {routeItem.totalFare.toLocaleString()}원
@@ -405,11 +507,11 @@ function RouteDetailContent() {
                 [경로 상세 정보 및 돌발 현황]
               </div>
 
-              {/* 2. 실시간 특이사항 정보 */}
-              <IncidentWidget incidents={selectedIncidents} />
+              {/* 2. 실시간 특이사항 정보 (Prisma API 연동) */}
+              <IncidentWidget incidents={incidents} />
 
               {/* 3. 상세 타임라인 노선도 */}
-              <Timeline segments={selectedRoute.segments} matchedTimes={selectedInfo.timesMap} />
+              <Timeline segments={selectedRoute.segments as any} matchedTimes={selectedInfo.timesMap} />
             </div>
           ) : (
             <div className="w-full glass-panel p-8 text-center text-slate-500 text-xs font-bold flex flex-col items-center gap-3 border border-slate-200">
