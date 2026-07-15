@@ -130,7 +130,7 @@ async function main() {
         routeId: optimalRoute.id,
         type: 'walk',
         startLocationId: hangongdae.id,
-        endLocationId: hangongdaeFront.id,
+        endLocationId: hangongdae.id,
         durationMinutes: 12,
         sequenceOrder: 5,
       },
