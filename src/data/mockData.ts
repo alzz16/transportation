@@ -261,7 +261,7 @@ export const getRoutes = (startId: string, endId: string): TransitRoute[] => {
   return [
     {
       id: `route-gen-${startId}-${endId}`,
-      title: `${startLoc.name} ➡️ ${endLoc.name} 경로`,
+      title: `${startLoc.name} ${endLoc.name} 경로`,
       totalDuration: 42,
       totalFare: 1500,
       segments: [

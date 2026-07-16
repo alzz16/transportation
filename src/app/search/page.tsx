@@ -104,19 +104,46 @@ function SearchContent() {
 
   // 5. 검색 실행 (상세 페이지로 이동 및 최근 검색 기록 저장)
   const handleSearch = () => {
-    if (!selectedStart || !selectedEnd) return;
+    // 입력한 텍스트를 기반으로 매칭되는 역/정류장을 찾는 헬퍼
+    const resolveLocation = (input: string, currentSelected: Location | null): Location | null => {
+      if (currentSelected) return currentSelected;
+      const trimmed = input.trim();
+      if (!trimmed) return null;
+      
+      // 1. 정확히 매칭되는 지명 검색
+      const exact = mockLocations.find(l => l.name === trimmed);
+      if (exact) return exact;
+      
+      // 2. 부분 매칭되는 첫 번째 지명 검색
+      const partial = mockLocations.find(l => l.name.toLowerCase().includes(trimmed.toLowerCase()));
+      if (partial) return partial;
+      
+      return null;
+    };
+
+    const start = resolveLocation(startInput, selectedStart);
+    const end = resolveLocation(endInput, selectedEnd);
+
+    if (!start) {
+      alert(`출발지 '${startInput}'에 매칭되는 역사/정류장을 찾을 수 없습니다. 정확한 지명을 입력하거나 목록에서 선택해 주세요.`);
+      return;
+    }
+    if (!end) {
+      alert(`도착지 '${endInput}'에 매칭되는 역사/정류장을 찾을 수 없습니다. 정확한 지명을 입력하거나 목록에서 선택해 주세요.`);
+      return;
+    }
 
     // 최근 검색 기록 추가
     const newSearch: RecentSearch = {
-      id: `${selectedStart.id}-${selectedEnd.id}-${Date.now()}`,
-      start: selectedStart,
-      end: selectedEnd,
+      id: `${start.id}-${end.id}-${Date.now()}`,
+      start: start,
+      end: end,
       timestamp: Date.now()
     };
 
     // 중복 제거 후 최신 검색어 맨 앞으로
     const filtered = recentSearches.filter(
-      item => !(item.start.id === selectedStart.id && item.end.id === selectedEnd.id)
+      item => !(item.start.id === start.id && item.end.id === end.id)
     );
     const updated = [newSearch, ...filtered].slice(0, 5); // 최대 5개 저장
 
@@ -124,7 +151,7 @@ function SearchContent() {
     localStorage.setItem('transit-recent-searches', JSON.stringify(updated));
 
     // 경로 상세 화면으로 이동
-    router.push(`/route-detail?start=${selectedStart.id}&end=${selectedEnd.id}`);
+    router.push(`/route-detail?start=${start.id}&end=${end.id}`);
   };
 
   // 6. 최근 검색 기록 선택
@@ -155,7 +182,7 @@ function SearchContent() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
           경로 검색
         </h1>
         <div className="w-9"></div> {/* 좌우 균형 맞춤 */}
@@ -166,7 +193,7 @@ function SearchContent() {
         {/* 스왑 버튼 */}
         <button
           onClick={handleSwap}
-          className="absolute right-8 top-1/2 -translate-y-1/2 z-10 p-2.5 bg-blue-600/90 border border-blue-400/30 rounded-full hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all text-white shadow-lg"
+          className="absolute right-8 top-1/2 -translate-y-1/2 z-10 p-2.5 bg-accent-primary border border-indigo-400/20 rounded-full hover:bg-indigo-500 hover:scale-105 active:scale-95 transition-all text-white shadow-lg shadow-indigo-500/20"
           title="출발지/도착지 전환"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,7 +233,7 @@ function SearchContent() {
                       className="w-full text-left px-4 py-2.5 text-sm hover:bg-blue-600/10 transition-colors flex items-center justify-between"
                     >
                       <span className="font-semibold text-slate-700">{loc.name}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-100/80 text-slate-500 border border-slate-200/50">
                         {loc.detail}
                       </span>
                     </button>
@@ -252,7 +279,7 @@ function SearchContent() {
                       className="w-full text-left px-4 py-2.5 text-sm hover:bg-blue-600/10 transition-colors flex items-center justify-between"
                     >
                       <span className="font-semibold text-slate-700">{loc.name}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-100/80 text-slate-500 border border-slate-200/50">
                         {loc.detail}
                       </span>
                     </button>
@@ -266,9 +293,9 @@ function SearchContent() {
 
       {/* 탐색 버튼 */}
       <button
-        disabled={!selectedStart || !selectedEnd}
+        disabled={!startInput.trim() || !endInput.trim()}
         onClick={handleSearch}
-        className="w-full py-4 rounded-xl bg-blue-600 font-semibold text-white shadow-lg active:scale-98 transition-all hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed disabled:active:scale-100 flex items-center justify-center gap-2 mb-8"
+        className="w-full py-4 rounded-[20px] bg-accent-primary font-bold text-white shadow-lg shadow-indigo-500/20 active:scale-98 transition-all hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed disabled:active:scale-100 flex items-center justify-center gap-2 mb-8"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -294,15 +321,15 @@ function SearchContent() {
               <div
                 key={item.id}
                 onClick={() => handleSelectRecent(item)}
-                className="w-full glass-panel p-4 hover:bg-slate-500/5 cursor-pointer flex items-center justify-between border-l-4 border-l-blue-500 active:scale-99 transition-all border border-slate-200"
+                className="w-full glass-panel p-4 hover:bg-slate-500/5 cursor-pointer flex items-center justify-between border-l-4 border-l-accent-primary active:scale-99 transition-all border border-slate-200/30"
               >
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2 text-sm text-slate-700">
-                    <span className="font-semibold text-emerald-600">{item.start.name}</span>
+                    <span className="font-bold text-emerald-600">{item.start.name}</span>
                     <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
-                    <span className="font-semibold text-red-600">{item.end.name}</span>
+                    <span className="font-bold text-red-500">{item.end.name}</span>
                   </div>
                   <span className="text-[10px] text-slate-500">
                     {new Date(item.timestamp).toLocaleString('ko-KR', {

@@ -86,10 +86,10 @@ export default function Timeline({ segments, matchedTimes }: TimelineProps) {
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-slate-800">
                       {isWalk ? (
-                        <span>{seg.startName} ➡️ {seg.endName}</span>
+                        <span>{seg.startName} {seg.endName}</span>
                       ) : (
                         <span>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-md text-white mr-2 ${lineColor}`}>
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full text-white mr-2 shadow-sm ${lineColor}`}>
                             {seg.lineName}
                           </span>
                           {seg.startName} 승차
@@ -97,14 +97,14 @@ export default function Timeline({ segments, matchedTimes }: TimelineProps) {
                       )}
                     </span>
                     {isWalk && (
-                      <span className="text-xs text-slate-500 font-medium mt-0.5">
+                      <span className="text-xs text-slate-500 font-semibold mt-0.5">
                         도보 이동 • {seg.durationMinutes}분 소요
                       </span>
                     )}
                   </div>
 
                   {!isWalk && seg.direction && (
-                    <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                    <span className="text-[10px] font-bold text-accent-primary bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100/50">
                       {seg.direction}
                     </span>
                   )}
@@ -112,20 +112,20 @@ export default function Timeline({ segments, matchedTimes }: TimelineProps) {
 
                 {/* 2. 대중교통 탑승 상세 정보 및 시간표 매칭 (지하철/버스 전용) */}
                 {!isWalk && (
-                  <div className="mt-1 flex flex-col gap-2 bg-slate-50/50 p-3.5 rounded-xl border border-slate-200">
+                  <div className="mt-1 flex flex-col gap-2 bg-slate-100/40 p-4 rounded-2xl border border-slate-200/40">
                     <div className="flex items-center justify-between text-xs text-slate-600">
-                      <span>소요시간: <strong>{seg.durationMinutes}분</strong></span>
+                      <span>소요시간: <strong className="text-slate-800">{seg.durationMinutes}분</strong></span>
                       {seg.fastTransferSection && (
-                        <span className="text-[11px] text-amber-600 font-semibold">
-                          빠른환승: <strong>{seg.fastTransferSection}</strong>
+                        <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100/50">
+                          빠른환승: {seg.fastTransferSection}
                         </span>
                       )}
                     </div>
 
                     {/* 시간표 매칭 */}
                     {segmentTimes.length > 0 && (
-                      <div className="flex flex-col gap-1.5 border-t border-slate-200 pt-2.5 mt-1.5">
-                        <div className="text-[10px] text-slate-500 font-bold tracking-wider uppercase">
+                      <div className="flex flex-col gap-1.5 border-t border-slate-200/60 pt-2.5 mt-1.5">
+                        <div className="text-[9px] text-slate-400 font-bold tracking-wider uppercase">
                           🕒 추천 탑승 시간표 (환승 연동 완료)
                         </div>
                         <ul className="flex flex-col gap-1">
@@ -135,19 +135,19 @@ export default function Timeline({ segments, matchedTimes }: TimelineProps) {
                             return (
                               <li
                                 key={tIdx}
-                                className={`flex items-center justify-between text-xs py-1 px-2 rounded-md ${
+                                className={`flex items-center justify-between text-xs py-1 px-2.5 rounded-xl ${
                                   isRecommended
-                                    ? 'bg-blue-50 text-blue-800 border border-blue-100 font-bold'
-                                    : 'text-slate-600 font-medium'
+                                    ? 'bg-indigo-50 text-accent-primary border border-indigo-100/50 font-bold'
+                                    : 'text-slate-500 font-medium'
                                 }`}
                               >
                                 <span className="flex items-center gap-1.5">
                                   {isRecommended && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse" />
                                   )}
                                   {time} 탑승
                                 </span>
-                                <span className="text-[10px] text-slate-400">
+                                <span className="text-[9px] text-slate-400 font-bold">
                                   {isRecommended ? '최적 차편 매칭' : '다음 배차'}
                                 </span>
                               </li>

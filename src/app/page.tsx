@@ -61,15 +61,15 @@ export default function HomePage() {
       {/* 서비스 로고 및 헤더 */}
       <div className="w-full flex flex-col items-center gap-2 mb-10 text-center">
         {/* 아이콘 */}
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg border border-blue-400/20 mb-1 animate-in fade-in duration-300">
+        <div className="w-14 h-14 rounded-[20px] bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg border border-indigo-400/20 mb-1 animate-in fade-in duration-300">
           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-800 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-indigo-600 via-violet-600 to-slate-800 bg-clip-text text-transparent">
           TransitFlow
         </h1>
-        <p className="text-xs font-semibold text-slate-500 tracking-wide">
+        <p className="text-xs font-bold text-slate-400 tracking-wide">
           대중교통 시간표 환승 및 실시간 알림 서비스
         </p>
       </div>
@@ -89,7 +89,7 @@ export default function HomePage() {
         ) : (
           <button
             onClick={() => setIsChatOpen(true)}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-indigo-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer"
+            className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold py-3.5 px-6 rounded-[20px] flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:shadow-violet-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer"
           >
             <svg className="w-4 h-4 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />

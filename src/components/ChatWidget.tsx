@@ -76,15 +76,15 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
   return (
     <div className="w-full max-w-[360px] mx-auto bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-3xl pt-12 pb-1 px-4 shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
       {/* 장식용 배경 광원 */}
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
 
       {/* 헤더 */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3 relative z-10">
         <div className="flex items-center gap-3">
           <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-accent-primary"></span>
           </span>
           <div>
             <h3 className="font-bold text-slate-800 text-sm tracking-tight">TransitFlow AI 가이드</h3>
@@ -93,7 +93,7 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
         </div>
         
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100/50">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-accent-primary border border-indigo-100/50">
             GROQ AI
           </span>
           {onClose && (
@@ -122,7 +122,7 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
               <div
                 className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed ${
                   isUser
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-none shadow-md font-medium'
+                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-tr-none shadow-md font-medium'
                     : 'bg-slate-100 text-slate-700 rounded-tl-none border border-slate-200/30'
                 }`}
                 style={{ whiteSpace: 'pre-line' }}
@@ -153,7 +153,7 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
             key={idx}
             onClick={() => handleSend(q)}
             disabled={isLoading}
-            className="text-[9px] font-bold text-slate-600 bg-slate-50 border border-slate-200/50 px-2 py-0.5 rounded-full hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+            className="text-[9px] font-bold text-slate-600 bg-slate-100/80 border border-slate-200/30 px-2.5 py-1 rounded-full hover:bg-indigo-50 hover:text-accent-primary hover:border-indigo-200/50 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
           >
             {q}
           </button>
@@ -171,12 +171,12 @@ export default function ChatWidget({ onClose }: ChatWidgetProps) {
           }}
           disabled={isLoading}
           placeholder="교통 정보나 지연 현황을 물어보세요..."
-          className="flex-1 bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-2.5 text-xs text-slate-700 placeholder-slate-400 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200 disabled:opacity-50"
+          className="flex-1 bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-2.5 text-xs text-slate-700 placeholder-slate-400 outline-none focus:bg-white focus:border-accent-primary focus:ring-2 focus:ring-indigo-100 transition-all duration-200 disabled:opacity-50"
         />
         <button
           onClick={() => handleSend(input)}
           disabled={!input.trim() || isLoading}
-          className="bg-blue-600 text-white px-4 py-2.5 rounded-2xl text-xs font-bold hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none disabled:scale-100 cursor-pointer flex items-center gap-1 shadow-md shadow-blue-500/25"
+          className="bg-accent-primary text-white px-4 py-2.5 rounded-2xl text-xs font-bold hover:bg-indigo-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none disabled:scale-100 cursor-pointer flex items-center gap-1 shadow-md shadow-indigo-500/25"
         >
           전송
         </button>

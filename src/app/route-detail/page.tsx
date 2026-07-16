@@ -283,7 +283,7 @@ function RouteDetailContent() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
           {selectedRoute ? '선택된 경로 상세' : '추천 경로 선택'}
         </h1>
         <button
@@ -322,13 +322,13 @@ function RouteDetailContent() {
               <div className="w-full flex flex-col gap-3">
                 <div className="flex justify-between items-center px-1">
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                    {startLoc?.name} ➡️ {endLoc?.name}
+                    {startLoc?.name} {endLoc?.name}
                   </span>
                   
                   {/* 다른 경로 보기(목록으로 가기) 버튼 */}
                   <button
                     onClick={() => setSelectedRouteId(null)}
-                    className="text-[10px] font-bold text-blue-600 hover:text-blue-500 bg-blue-50 hover:bg-blue-100/80 px-2 py-1 rounded-md transition-all flex items-center gap-0.5 border border-blue-100 shadow-sm"
+                    className="text-[9px] font-bold text-accent-primary bg-indigo-50 hover:bg-indigo-100/80 px-2.5 py-1 rounded-full transition-all flex items-center gap-0.5 border border-indigo-100/50 shadow-sm"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16" />
@@ -343,18 +343,18 @@ function RouteDetailContent() {
                   const hasEmergency = incidents.some(inc => inc.level === 'emergency');
 
                   return (
-                    <div className="w-full glass-panel p-5 flex flex-col gap-3.5 relative overflow-hidden border border-blue-500 bg-blue-50/10 shadow-md">
+                    <div className="w-full glass-panel p-5 flex flex-col gap-3.5 relative overflow-hidden border border-accent-primary bg-indigo-50/5 shadow-md">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded border bg-blue-50 text-blue-600 border-blue-100">
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-indigo-50 text-accent-primary border-indigo-100/50">
                             {selectedRoute.title}
                           </span>
                           {hasEmergency ? (
-                            <span className="text-[10px] font-bold text-red-700 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded animate-pulse">
+                            <span className="text-[9px] font-bold text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full animate-pulse">
                               긴급 지연/우회권장
                             </span>
                           ) : (
-                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded">
+                            <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
                               정상 소통
                             </span>
                           )}
@@ -414,6 +414,57 @@ function RouteDetailContent() {
                     </div>
                   );
                 })()}
+
+                {/* 긴급 문제 발생 시 대체 우회 경로 추천 위젯 */}
+                {(() => {
+                  const hasEmergency = incidents.some(inc => inc.level === 'emergency');
+                  if (!hasEmergency) return null;
+
+                  const altRoutes = allRoutes.filter(r => r.id !== selectedRoute.id);
+                  if (altRoutes.length === 0) return null;
+
+                  return (
+                    <div className="mt-3.5 p-4 rounded-2xl bg-amber-50 border border-amber-200/50 flex flex-col gap-2.5 relative overflow-hidden animate-in slide-in-from-top-2 duration-300">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800">
+                        <svg className="w-4 h-4 text-amber-500 animate-pulse flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        지연 장애 우회 대안 경로 추천
+                      </div>
+                      
+                      <div className="flex flex-col gap-2">
+                        {altRoutes.map(altRoute => {
+                          const altSummary = getCalculatedRouteSummary(altRoute, baseTime);
+                          return (
+                            <button
+                              key={altRoute.id}
+                              onClick={() => handleSelectRoute(altRoute.id)}
+                              className="w-full text-left bg-white border border-amber-200/60 hover:border-amber-300 hover:bg-amber-50/20 px-3 py-2.5 rounded-xl transition-all flex items-center justify-between group shadow-sm active:scale-99 cursor-pointer"
+                            >
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold border border-slate-200/50">
+                                    우회
+                                  </span>
+                                  {altRoute.title}
+                                </span>
+                                <span className="text-[9px] text-slate-500 font-bold">
+                                  소요: {altSummary.totalDuration}분 • 요금: {altRoute.totalFare.toLocaleString()}원
+                                </span>
+                              </div>
+                              <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-full group-hover:bg-amber-100 transition-colors flex items-center gap-0.5 border border-amber-200/40">
+                                우회하기
+                                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                                </svg>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               // 목록 전체 노출 상태 (선택된 카드가 없을 때)
@@ -429,18 +480,18 @@ function RouteDetailContent() {
                     <div
                       key={routeItem.id}
                       onClick={() => handleSelectRoute(routeItem.id)}
-                      className="w-full glass-panel p-5 flex flex-col gap-3.5 relative overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.99] border border-slate-200 bg-white/40 hover:bg-slate-500/5 hover:border-slate-300 hover:shadow-md"
+                      className="w-full glass-panel p-5 flex flex-col gap-3.5 relative overflow-hidden transition-all duration-300 cursor-pointer active:scale-[0.99] border border-slate-200/40 bg-white/40 hover:bg-slate-500/5 hover:border-slate-300 hover:shadow-md"
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded border bg-slate-100 text-slate-600 border-slate-200">
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-slate-100/80 text-slate-600 border-slate-200/50">
                             {routeItem.title}
                           </span>
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
                             정상 소통
                           </span>
                         </div>
-                        <span className="text-[11px] text-slate-600 font-medium">
+                        <span className="text-[11px] text-slate-500 font-bold">
                           요금: {routeItem.totalFare.toLocaleString()}원
                         </span>
                       </div>
@@ -504,7 +555,7 @@ function RouteDetailContent() {
             <div className="w-full flex flex-col gap-6 animate-in fade-in slide-in-from-top-3 duration-300">
               <div className="w-full h-[1px] bg-slate-200 my-2"></div>
               
-              <div className="text-xs font-bold text-blue-600 uppercase tracking-wider px-1">
+              <div className="text-xs font-bold text-accent-primary uppercase tracking-wider px-1">
                 [경로 상세 정보 및 돌발 현황]
               </div>
 
@@ -515,8 +566,8 @@ function RouteDetailContent() {
               <Timeline segments={selectedRoute.segments as any} matchedTimes={selectedInfo.timesMap} />
             </div>
           ) : (
-            <div className="w-full glass-panel p-8 text-center text-slate-500 text-xs font-bold flex flex-col items-center gap-3 border border-slate-200">
-              <svg className="w-8 h-8 text-blue-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-full glass-panel p-8 text-center text-slate-500 text-xs font-bold flex flex-col items-center gap-3 border border-slate-200/40 rounded-2xl">
+              <svg className="w-8 h-8 text-accent-primary animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
               </svg>
               위의 추천 경로 카드 중 하나를 선택하시면<br />상세 매칭 시간표 및 실시간 특이사항 정보를 볼 수 있습니다.
@@ -526,7 +577,7 @@ function RouteDetailContent() {
           {/* 메인으로 가기 및 안내종료 버튼 */}
           <button
             onClick={() => router.push('/')}
-            className="w-full py-4 rounded-xl glass-panel hover:bg-slate-500/10 text-slate-700 font-semibold active:scale-98 transition-all border border-slate-200 mt-2 mb-8 flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-[20px] glass-panel hover:bg-slate-500/10 text-slate-600 font-bold active:scale-98 transition-all border border-slate-200/30 mt-2 mb-8 flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
